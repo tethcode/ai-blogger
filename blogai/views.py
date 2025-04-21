@@ -7,7 +7,6 @@ from django.http import JsonResponse
 from django.conf import settings
 import json
 import os
-from pytube import YouTube
 import assemblyai as aai
 from .models import BlogPost
 import google.generativeai as genai
