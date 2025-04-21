@@ -62,7 +62,6 @@ def yt_title(link):
         'skip_download': True,  # We don't want to download, just get metadata
         'cookiefile': 'cookies.txt',
     }
-    'cookiefile': 'youtube_cookies.txt',
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         info = ydl.extract_info(link, download=False)
@@ -76,7 +75,6 @@ def download_audio(link):
         'quiet': True,
         'cookiefile': 'youtube_cookies.txt',
     }
-    'cookiefile': 'youtube_cookies.txt',
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         info = ydl.extract_info(link, download=True)
