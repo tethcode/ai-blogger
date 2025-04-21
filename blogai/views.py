@@ -81,13 +81,13 @@ def download_audio(link):
 
 def get_transcription(link):
     audio_file = download_audio(link)
-    aai.settings.api_key = "b0ec6e26843346938e1d9d39832ecc75"
+    aai.settings.api_key = os.environ.get("AAI_API_KEY")
     transcriber = aai.Transcriber()
     transcript = transcriber.transcribe(audio_file)
     return transcript.text
 
 def generate_blog_from_transcription(transcription):
-    genai.configure(api_key="AIzaSyBqfoI7hb-YmqEFM9iaOBY0Fc5m5iP1SUU")
+    genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
     model = genai.GenerativeModel('gemini-2.0-flash')
     response = model.generate_content(f"Based on the following transcript from a YouTube video, write a comprehensive blog article, write it based on the transcript, but dont make it look like a youtube video, make it look like a proper blog article:\n\n{transcription}\n\nArticle:")
     generated_content = response.text.strip()
