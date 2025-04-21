@@ -57,26 +57,26 @@ def generate_blog(request):
         return JsonResponse({'error': 'Invalid request method'}, status=405)
 
 def yt_title(link):
-    cookie_file_path = os.path.join(os.path.dirname(__file__), 'cookies.json')
     ydl_opts = {
         'quiet': True,
         'skip_download': True,  # We don't want to download, just get metadata
-        'cookies': cookie_file_path,
+        'cookiefile': 'cookies.txt',
     }
+    'cookiefile': 'youtube_cookies.txt',
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         info = ydl.extract_info(link, download=False)
         return info.get('title', 'Untitled')
 
 def download_audio(link):
-    cookie_file_path = os.path.join(os.path.dirname(__file__), 'cookies.json')
     output_path = os.path.join(settings.MEDIA_ROOT, '%(title)s.%(ext)s')
     ydl_opts = {
         'format': 'bestaudio/best',
         'outtmpl': output_path,
         'quiet': True,
-        'cookies': cookie_file_path,
+        'cookiefile': 'youtube_cookies.txt',
     }
+    'cookiefile': 'youtube_cookies.txt',
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         info = ydl.extract_info(link, download=True)
