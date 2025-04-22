@@ -10,7 +10,11 @@ import os
 import assemblyai as aai
 from .models import BlogPost
 import google.generativeai as genai
-import yt_dlp
+import os
+from ytmdl import defaults, pre
+from ytmdl.sources import youtube
+from ytmdl import metadata
+from ytmdl.downloader import download_song
 
 @login_required(login_url='blogai:login')
 def index(request):
@@ -59,27 +63,44 @@ def generate_blog(request):
 def yt_title(link):
     ydl_opts = {
         'quiet': True,
-        'skip_download': True,  # We don't want to download, just get metadata
+        'skip_download': True,
         'cookiefile': 'cookies.txt',
     }
 
-    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+    with youtube_dl.YoutubeDL(ydl_opts) as ydl:
         info = ydl.extract_info(link, download=False)
         return info.get('title', 'Untitled')
 
 def download_audio(link):
-    output_path = os.path.join(settings.MEDIA_ROOT, '%(title)s.%(ext)s')
-    ydl_opts = {
-        'format': 'bestaudio/best',
-        'outtmpl': output_path,
-        'quiet': True,
-        'cookiefile': 'youtube_cookies.txt',
-    }
+    # Make sure output dir exists
+    output_dir = settings.MEDIA_ROOT
+    os.makedirs(output_dir, exist_ok=True)
 
-    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-        info = ydl.extract_info(link, download=True)
-        filename = ydl.prepare_filename(info)
-        return filename
+    # Set ytmdl download directory
+    defaults.SONG_TEMP_DIR = output_dir
+    defaults.SONG_DIR = output_dir
+
+    # Extract basic metadata from YouTube link
+    songs = youtube.search(link)
+    if not songs:
+        return None
+
+    song = songs[0]
+
+    # Fetch metadata for better tagging (optional)
+    try:
+        meta_results = metadata.search(song.name)
+        if meta_results:
+            song.set_meta(meta_results[0])
+    except Exception:
+        pass
+
+    # Download song using ytmdl
+    download_song(song)
+
+    # Return the expected filename
+    filename = f"{song.name}.mp3"
+    return os.path.join(output_dir, filename)
 
 def get_transcription(link):
     audio_file = download_audio(link)
