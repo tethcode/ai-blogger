@@ -11,9 +11,8 @@ import assemblyai as aai
 from .models import BlogPost
 import google.generativeai as genai
 import os
-from ytmdl import defaults, metadata
-from ytmdl.sources import youtube
-from ytmdl.downloader import download_song
+import subprocess
+import os
 
 @login_required(login_url='blogai:login')
 def index(request):
@@ -70,36 +69,23 @@ def yt_title(link):
         info = ydl.extract_info(link, download=False)
         return info.get('title', 'Untitled')
 
+import subprocess
+import os
+
 def download_audio(link):
-    # Make sure the output directory exists
     output_dir = settings.MEDIA_ROOT
     os.makedirs(output_dir, exist_ok=True)
 
-    # Set ytmdl output directories
-    defaults.SONG_TEMP_DIR = output_dir
-    defaults.SONG_DIR = output_dir
-
-    # Search for the song from YouTube
-    songs = youtube.search(link)
-    if not songs:
-        return None  # or handle error
-
-    song = songs[0]
-
-    # Try to fetch better metadata (optional)
     try:
-        meta_results = metadata.search(song.name)
-        if meta_results:
-            song.set_meta(meta_results[0])
-    except Exception:
-        pass
-
-    # Download the song
-    download_song(song)
-
-    # Return the path to the downloaded MP3
-    filename = f"{song.name}.mp3"
-    return os.path.join(output_dir, filename)
+        result = subprocess.run(
+            ['ytmdl', link, '-o', output_dir],
+            check=True,
+            capture_output=True,
+            text=True
+        )
+        return f"Downloaded successfully to {output_dir}"
+    except subprocess.CalledProcessError as e:
+        return f"Download failed: {e.stderr}"
 
 def get_transcription(link):
     audio_file = download_audio(link)
