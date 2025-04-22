@@ -11,9 +11,8 @@ import assemblyai as aai
 from .models import BlogPost
 import google.generativeai as genai
 import os
-from ytmdl import defaults, pre
+from ytmdl import defaults, metadata
 from ytmdl.sources import youtube
-from ytmdl import metadata
 from ytmdl.downloader import download_song
 
 @login_required(login_url='blogai:login')
@@ -72,22 +71,22 @@ def yt_title(link):
         return info.get('title', 'Untitled')
 
 def download_audio(link):
-    # Make sure output dir exists
+    # Make sure the output directory exists
     output_dir = settings.MEDIA_ROOT
     os.makedirs(output_dir, exist_ok=True)
 
-    # Set ytmdl download directory
+    # Set ytmdl output directories
     defaults.SONG_TEMP_DIR = output_dir
     defaults.SONG_DIR = output_dir
 
-    # Extract basic metadata from YouTube link
+    # Search for the song from YouTube
     songs = youtube.search(link)
     if not songs:
-        return None
+        return None  # or handle error
 
     song = songs[0]
 
-    # Fetch metadata for better tagging (optional)
+    # Try to fetch better metadata (optional)
     try:
         meta_results = metadata.search(song.name)
         if meta_results:
@@ -95,10 +94,10 @@ def download_audio(link):
     except Exception:
         pass
 
-    # Download song using ytmdl
+    # Download the song
     download_song(song)
 
-    # Return the expected filename
+    # Return the path to the downloaded MP3
     filename = f"{song.name}.mp3"
     return os.path.join(output_dir, filename)
 
